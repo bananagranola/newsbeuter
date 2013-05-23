@@ -34,6 +34,7 @@
 #include <sys/utsname.h>
 #include <langinfo.h>
 #include <libgen.h>
+#include <getopt.h>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -220,8 +221,31 @@ void controller::run(int argc, char * argv[]) {
 
 	static char getopt_str[] = "i:erhqu:c:C:d:l:vVoxXI:E:";
 
+	static struct option getopt_longs[] =
+	{
+		{"help", 		no_argument, 		0, 	'h'},
+		{"refresh", 	no_argument, 		0,	'r'},
+		{"export",		no_argument,		0,	'e'},
+		{"cleancache",	no_argument,		0,	'X'},
+		{"version",		no_argument,		0,	'v'},
+		{"omplfile",	required_argument,	0,	'i'},
+		{"urlfile",		required_argument,	0,	'u'},
+		{"cache",		required_argument,	0,	'c'},
+		{"config",		required_argument,	0,	'C'},
+		{"command",		required_argument,	0,	'x'},
+		{"offline",		no_argument,		0,	'o'},
+		{"loglevel",	required_argument,	0,	'l'},
+		{"logfile",		required_argument,	0,	'd'},
+		{"exportread",	required_argument,	0,	'E'},
+		{"importread",	required_argument,	0,	'I'},
+		{"quiet",		no_argument,		0,	'q'},
+		{0,0,0,0}
+	};
+
+	int getopt_index = 0;
+
 	do {
-		if ((c = ::getopt(argc,argv,getopt_str)) < 0)
+		if ((c = ::getopt_long(argc,argv,getopt_str, getopt_longs, &getopt_index)) < 0)
 				continue;
 		if (strchr("iexq", c) != NULL) {
 			silent = true;
@@ -234,7 +258,7 @@ void controller::run(int argc, char * argv[]) {
 	optind = 1;
 
 	do {
-		if((c = ::getopt(argc,argv,getopt_str))<0)
+		if((c = ::getopt_long(argc,argv,getopt_str, getopt_longs, &getopt_index))<0)
 			continue;
 		switch (c) {
 			case ':': /* fall-through */
@@ -1007,27 +1031,27 @@ void controller::usage(char * argv0) {
 	std::cout << utils::strprintf(_("%s %s\nusage: %s [-i <file>|-e] [-u <urlfile>] [-c <cachefile>] [-x <command> ...] [-h]\n"), 
 					PROGRAM_NAME, PROGRAM_VERSION, argv0);
 	struct {
-		char arg;
+		const char * arg;
 		const char * params;
 		const char * desc;
 	} args[] = {
-		{ 'e', "", _("export OPML feed to stdout") },
-		{ 'r', "", _("refresh feeds on start") },
-		{ 'i', _("<file>"), _("import OPML file") },
-		{ 'u', _("<urlfile>"), _("read RSS feed URLs from <urlfile>") },
-		{ 'c', _("<cachefile>"), _("use <cachefile> as cache file") },
-		{ 'C', _("<configfile>"), _("read configuration from <configfile>") },
-		{ 'X', "", _("clean up cache thoroughly") },
-		{ 'x', _("<command>..."), _("execute list of commands") },
-		{ 'o', "", _("activate offline mode (only applies to Google Reader synchronization mode)") },
-		{ 'q', "", _("quiet startup") },
-		{ 'v', "", _("get version information") },
-		{ 'l', _("<loglevel>"), _("write a log with a certain loglevel (valid values: 1 to 6)") },
-		{ 'd', _("<logfile>"), _("use <logfile> as output log file") },
-		{ 'E', _("<file>"), _("export list of read articles to <file>") },
-		{ 'I', _("<file>"), _("import list of read articles from <file>") },
-		{ 'h', "", _("this help") },
-		{ '\0', NULL, NULL }
+		{ "e, export", "", _("export OPML feed to stdout") },
+		{ "r, refresh", "", _("refresh feeds on start") },
+		{ "i, import", _("<file>"), _("import OPML file") },
+		{ "u, urlfile", _("<urlfile>"), _("read RSS feed URLs from <urlfile>") },
+		{ "c, cache", _("<cachefile>"), _("use <cachefile> as cache file") },
+		{ "C, config", _("<configfile>"), _("read configuration from <configfile>") },
+		{ "X, cleancache", "", _("clean up cache thoroughly") },
+		{ "x, command", _("<commands>"), _("execute list of commands") },
+		{ "o, offline", "", _("activate offline mode (only applies to Google Reader synchronization mode)") },
+		{ "q, quiet", "", _("quiet startup") },
+		{ "v, version", "", _("get version information") },
+		{ "l, loglevel", _("<loglevel>"), _("write a log with a certain loglevel (valid values: 1 to 6)") },
+		{ "d, logfile", _("<logfile>"), _("use <logfile> as output log file") },
+		{ "E, export", _("<file>"), _("export list of read articles to <file>") },
+		{ "I, import", _("<file>"), _("import list of read articles from <file>") },
+		{ "h, help", "", _("this help") },
+		{ NULL, NULL, NULL }
 	};
 
 	for (unsigned int i=0;args[i].arg != '\0';i++) {
